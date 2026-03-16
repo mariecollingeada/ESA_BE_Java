@@ -103,11 +103,6 @@
       <version>1.21.4</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-checkstyle-plugin</artifactId>
-      <version>3.6.0</version>
-    </dependency>
 
   </dependencies>
 
@@ -151,6 +146,37 @@
             <googleJavaFormat/>
           </java>
         </configuration>
+        <executions>
+          <execution>
+            <id>spotless-apply</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>apply</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.6.0</version>
+        <configuration>
+          <!-- Custom rules based on Google style, adjusted for Spring Boot + Lombok -->
+          <configLocation>checkstyle.xml</configLocation>
+          <consoleOutput>true</consoleOutput>
+          <failsOnError>true</failsOnError>
+          <violationSeverity>warning</violationSeverity>
+          <excludes>**/generated/**/*</excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>checkstyle</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
