@@ -3,24 +3,23 @@ package com.example.demo.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import java.security.Key;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class JwtUtil {
 
-  private final Key key;
+  private final SecretKey key;
   private final long validityMs;
 
   public JwtUtil(
-      @Value("${app.jwt.secret:change_this_dev_secret_replace_me}") String secret,
+      @Value("${app.jwt.secret:change_this_dev_secret_replace_me_32bytes}") String secret,
       @Value("${app.jwt.ttl-ms:86400000}") long ttlMs) {
-    // secret should be at least 32 bytes for HS256
-    this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     this.validityMs = ttlMs;
   }
 
@@ -28,10 +27,10 @@ public class JwtUtil {
     Date now = new Date();
     Date expiry = new Date(now.getTime() + validityMs);
     return Jwts.builder()
-        .setSubject(username)
-        .setIssuedAt(now)
-        .setExpiration(expiry)
-        .signWith(key, SignatureAlgorithm.HS256)
+        .subject(username)
+        .issuedAt(now)
+        .expiration(expiry)
+        .signWith(key)
         .compact();
   }
 
@@ -49,6 +48,6 @@ public class JwtUtil {
   }
 
   private Claims parseClaims(String token) {
-    return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+    return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
   }
 }

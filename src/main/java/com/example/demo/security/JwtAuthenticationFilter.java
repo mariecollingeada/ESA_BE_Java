@@ -1,6 +1,5 @@
 package com.example.demo.security;
 
-import com.example.demo.auth.AuthService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
@@ -20,7 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtUtil jwtUtil;
-  private final AuthService authService;
+  private final UserDetailsService userDetailsService;
 
   private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
   private static final String[] PUBLIC_PATHS = {
@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       if (jwtUtil.validateToken(token)) {
         String username = jwtUtil.extractUsername(token);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-          UserDetails ud = authService.loadUserByUsername(username);
+          UserDetails ud = userDetailsService.loadUserByUsername(username);
           var auth = new UsernamePasswordAuthenticationToken(ud, null, ud.getAuthorities());
           auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
           SecurityContextHolder.getContext().setAuthentication(auth);

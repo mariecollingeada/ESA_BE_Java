@@ -34,8 +34,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-m2-
       
-      - name: Spotless apply (auto-format)
-        run: ./mvnw -B spotless:apply
+      - name: Spotless check (format)
+        run: ./mvnw -B com.diffplug.spotless:spotless-maven-plugin:2.43.0:check
       
       - name: Checkstyle
         run: ./mvnw -B checkstyle:check
