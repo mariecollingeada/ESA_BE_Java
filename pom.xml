@@ -146,15 +146,7 @@
             <googleJavaFormat/>
           </java>
         </configuration>
-        <executions>
-          <execution>
-            <id>spotless-apply</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>apply</goal>
-            </goals>
-          </execution>
-        </executions>
+        <!-- Run manually: ./mvnw spotless:apply  or  ./mvnw spotless:check -->
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
