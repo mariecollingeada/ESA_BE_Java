@@ -32,7 +32,9 @@ public class SecurityConfig {
         .httpBasic(b -> b.disable())
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/auth/**")
+                auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
+                    .permitAll() // allow all CORS preflight requests
+                    .requestMatchers("/auth/**")
                     .permitAll() // matches your /auth endpoints
                     .anyRequest()
                     .authenticated())
@@ -47,10 +49,17 @@ public class SecurityConfig {
 
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
+    // Strip any trailing slash to avoid origin mismatch
+    String origin =
+        frontendOrigin.endsWith("/")
+            ? frontendOrigin.substring(0, frontendOrigin.length() - 1)
+            : frontendOrigin;
+
     CorsConfiguration cfg = new CorsConfiguration();
-    cfg.setAllowedOrigins(List.of(frontendOrigin));
+    cfg.setAllowedOrigins(List.of(origin));
     cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     cfg.setAllowedHeaders(List.of("*"));
+    cfg.setExposedHeaders(List.of("Authorization"));
     cfg.setAllowCredentials(true);
     cfg.setMaxAge(3600L);
 
