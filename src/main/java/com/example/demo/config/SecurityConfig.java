@@ -1,8 +1,10 @@
 package com.example.demo.config;
 
 import com.example.demo.security.JwtAuthenticationFilter;
+import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,11 +18,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  @Value("${FRONTEND_URL:https://esa-fe.onrender.com}")
+  @Value("${FRONTEND_URL:http://localhost:5173}")
   private String frontendOrigin;
 
   private final JwtAuthenticationFilter jwtFilter;
@@ -49,14 +52,18 @@ public class SecurityConfig {
 
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
-    // Strip any trailing slash to avoid origin mismatch
-    String origin =
-        frontendOrigin.endsWith("/")
-            ? frontendOrigin.substring(0, frontendOrigin.length() - 1)
-            : frontendOrigin;
+    // Support comma-separated origins: e.g.
+    // FRONTEND_URL=https://esa-fe.onrender.com,http://localhost:5173
+    List<String> origins =
+        Arrays.stream(frontendOrigin.split(","))
+            .map(String::trim)
+            .map(o -> o.endsWith("/") ? o.substring(0, o.length() - 1) : o)
+            .toList();
+
+    log.info("CORS allowed origins: {}", origins);
 
     CorsConfiguration cfg = new CorsConfiguration();
-    cfg.setAllowedOrigins(List.of(origin));
+    cfg.setAllowedOrigins(origins);
     cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     cfg.setAllowedHeaders(List.of("*"));
     cfg.setExposedHeaders(List.of("Authorization"));

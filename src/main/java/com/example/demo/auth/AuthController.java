@@ -8,6 +8,7 @@ import com.example.demo.security.JwtUtil;
 import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -31,6 +33,7 @@ public class AuthController {
   /** POST /auth/login Authenticates the user and returns a token. */
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    log.info("Login attempt for user: {}", request.getUsername());
     Authentication authentication =
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
@@ -48,6 +51,7 @@ public class AuthController {
   /** POST /auth/register Registers a new user account. */
   @PostMapping("/register")
   public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest request) {
+    log.info("Register attempt for user: {}", request.getUsername());
     authService.register(request);
     return ResponseEntity.status(201).body(Map.of("status", "created"));
   }
