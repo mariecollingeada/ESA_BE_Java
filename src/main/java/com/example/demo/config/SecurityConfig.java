@@ -20,7 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  @Value("${FRONTEND_URL}")
+  @Value("${FRONTEND_URL:https://esa-fe.onrender.com}")
   private String frontendOrigin;
 
   private final JwtAuthenticationFilter jwtFilter;
