@@ -37,8 +37,10 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
                     .permitAll() // allow all CORS preflight requests
+                    .requestMatchers("/auth/profile")
+                    .authenticated() // profile endpoint requires a valid JWT
                     .requestMatchers("/auth/**", "/error")
-                    .permitAll() // matches your /auth endpoints + Spring's error page
+                    .permitAll() // other auth endpoints are public
                     .anyRequest()
                     .authenticated())
         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

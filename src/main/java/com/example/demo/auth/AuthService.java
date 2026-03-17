@@ -67,6 +67,12 @@ public class AuthService implements UserDetailsService {
     throw new UnsupportedOperationException("initiatePasswordReset not yet implemented");
   }
 
+  public User findByUsername(String username) {
+    return userRepository
+        .findByUsername(username)
+        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+  }
+
   public void resetPassword(ResetPasswordRequest request) {
     // TODO: validate token, check that passwords match, hash new password, persist
     if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
