@@ -2,6 +2,7 @@ package com.example.demo.config;
 
 import com.example.demo.auth.AuthService;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -9,7 +10,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -44,5 +47,17 @@ public class GlobalExceptionHandler {
             .reduce((a, b) -> a + "; " + b)
             .orElse("Validation failed");
     return ResponseEntity.badRequest().body(Map.of("error", message));
+  }
+
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ResponseEntity<Map<String, String>> handleNoResource(NoResourceFoundException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Resource not found"));
+  }
+
+  @ExceptionHandler(Exception.class)
+  public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
+    log.error("Unhandled exception: ", ex);
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(Map.of("error", "An unexpected error occurred"));
   }
 }
