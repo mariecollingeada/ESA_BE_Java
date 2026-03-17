@@ -2,6 +2,7 @@ package com.example.demo.auth;
 
 import com.example.demo.auth.dto.AuthResponse;
 import com.example.demo.auth.dto.LoginRequest;
+import com.example.demo.auth.dto.ProfileResponse;
 import com.example.demo.auth.dto.RegisterRequest;
 import com.example.demo.auth.dto.ResetPasswordRequest;
 import com.example.demo.security.JwtUtil;
@@ -13,7 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -73,5 +76,18 @@ public class AuthController {
   public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequest request) {
     authService.resetPassword(request);
     return ResponseEntity.ok().build();
+  }
+
+  /**
+   * GET /auth/profile Returns the profile of the currently authenticated user. Requires a valid JWT
+   * in the Authorization header.
+   */
+  @GetMapping("/profile")
+  public ResponseEntity<ProfileResponse> getProfile(
+      @AuthenticationPrincipal UserDetails principal) {
+    com.example.demo.auth.models.User user = authService.findByUsername(principal.getUsername());
+    var profile =
+        new ProfileResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRoles());
+    return ResponseEntity.ok(profile);
   }
 }

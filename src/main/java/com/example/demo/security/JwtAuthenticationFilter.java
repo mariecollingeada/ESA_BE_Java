@@ -28,6 +28,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getServletPath();
+    // /auth/profile requires authentication, so don't skip it
+    if ("/auth/profile".equals(path)) {
+      return false;
+    }
     for (String pattern : PUBLIC_PATHS) {
       if (PATH_MATCHER.match(pattern, path)) {
         return true;
