@@ -23,9 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private final UserDetailsService userDetailsService;
 
   private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
-  private static final String[] PUBLIC_PATHS = {
-    "/auth/login", "/auth/register", "/auth/reset-password/initiate", "/auth/reset-password"
-  };
+  private static final String[] PUBLIC_PATHS = {"/auth/**"};
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
