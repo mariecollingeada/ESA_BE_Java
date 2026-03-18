@@ -7,6 +7,7 @@ import com.example.demo.auth.dto.RegisterRequest;
 import com.example.demo.auth.dto.ResetPasswordRequest;
 import com.example.demo.security.JwtUtil;
 import jakarta.validation.Valid;
+import java.io.IOException;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +64,7 @@ public class AuthController {
    * POST /auth/reset-password/initiate?email=... Sends a password-reset email to the given address.
    */
   @PostMapping("/reset-password/initiate")
-  public ResponseEntity<Void> initiatePasswordReset(@RequestParam String email) {
+  public ResponseEntity<Void> initiatePasswordReset(@RequestParam String email) throws IOException {
     authService.initiatePasswordReset(email);
     return ResponseEntity.ok().build();
   }
