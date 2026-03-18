@@ -108,8 +108,14 @@
       <artifactId>junit-jupiter</artifactId>
       <version>1.21.4</version>
       <scope>test</scope>
-    </dependency>
 
+    </dependency>
+    <dependency>
+      <groupId>com.sendgrid</groupId>
+      <artifactId>sendgrid-java</artifactId>
+      <version>4.10.3</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>

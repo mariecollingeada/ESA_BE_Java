@@ -1,11 +1,14 @@
 package com.example.demo.auth;
 
-import com.example.demo.auth.dto.LoginRequest;
 import com.example.demo.auth.dto.RegisterRequest;
 import com.example.demo.auth.dto.ResetPasswordRequest;
+import com.example.demo.auth.models.PasswordResetToken;
 import com.example.demo.auth.models.User;
+import java.io.IOException;
 import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,24 +18,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService implements UserDetailsService {
 
   private final UserRepository userRepository;
+  private final PasswordTokenRepository passwordTokenRepository;
   private final PasswordEncoder passwordEncoder;
-
-  public String login(LoginRequest request) {
-    // TODO: validate credentials against user store and return a JWT / session token
-    throw new UnsupportedOperationException("login not yet implemented");
-  }
+  private final EmailService emailService;
 
   @Transactional
   public User register(RegisterRequest request) {
-    if (userRepository.existsByEmail(request.getEmail())) {
+    String email = normalizeEmail(request.getEmail());
+    String username = normalizeUsername(request.getUsername());
+
+    if (userRepository.existsByEmail(email)) {
       throw new IllegalArgumentException("Email is already registered");
     }
-    if (userRepository.existsByUsername(request.getUsername())) {
+    if (userRepository.existsByUsername(username)) {
       throw new IllegalArgumentException("Username already exists");
     }
     if (!isPasswordAcceptable(request.getPassword(), request.getConfirmPassword())) {
@@ -41,8 +45,8 @@ public class AuthService implements UserDetailsService {
 
     User user =
         User.builder()
-            .username(request.getUsername())
-            .email(request.getEmail())
+            .username(username)
+            .email(email)
             .password(passwordEncoder.encode(request.getPassword()))
             .roles(Set.of("ROLE_USER"))
             .enabled(true)
@@ -55,30 +59,84 @@ public class AuthService implements UserDetailsService {
     }
   }
 
+  private String normalizeEmail(String email) {
+    return email == null ? null : email.trim().toLowerCase();
+  }
+
+  private String normalizeUsername(String username) {
+    return username == null ? null : username.trim().toLowerCase();
+  }
+
   private boolean isPasswordAcceptable(String password, String confirmPassword) {
+    log.info(password);
+    log.info(confirmPassword);
+    if (password == null || confirmPassword == null) {
+      log.info("Password or confirm password is null");
+      return false;
+    }
     if (!password.equals(confirmPassword)) {
+      log.info("Passwords do not match");
       return false;
     }
     return password.length() >= 8;
   }
 
-  public void initiatePasswordReset(String email) {
-    // TODO: look up user by email and send a password-reset link / token
-    throw new UnsupportedOperationException("initiatePasswordReset not yet implemented");
+  public void initiatePasswordReset(String email) throws IOException {
+    String normalizedEmail = normalizeEmail(email);
+    var userOptional = userRepository.findByEmail(normalizedEmail);
+    if (userOptional.isEmpty()) {
+      // Silently return to prevent email enumeration
+      log.info("Password reset requested for non-existent email: {}", normalizedEmail);
+      return;
+    }
+
+    User user = userOptional.get();
+    PasswordResetToken resetToken = createPasswordResetToken(user);
+
+    emailService.sendPasswordResetEmail(normalizedEmail, resetToken.getToken());
+    log.info("Password reset email sent to: {}", normalizedEmail);
   }
 
   public User findByUsername(String username) {
+    String normalizedUsername = normalizeUsername(username);
     return userRepository
-        .findByUsername(username)
-        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        .findByUsername(normalizedUsername)
+        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + normalizedUsername));
   }
 
+  @Transactional
   public void resetPassword(ResetPasswordRequest request) {
-    // TODO: validate token, check that passwords match, hash new password, persist
-    if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
-      throw new IllegalArgumentException("Passwords do not match");
+    PasswordResetToken token = getValidToken(request.getToken());
+
+    if (!isPasswordAcceptable(request.getNewPassword(), request.getConfirmPassword())) {
+      throw new IllegalArgumentException("Password policy not met");
     }
-    throw new UnsupportedOperationException("resetPassword not yet implemented");
+
+    User user = token.getUser();
+    user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+    userRepository.save(user);
+
+    token.setUsed(true);
+    passwordTokenRepository.save(token);
+
+    log.info("Password reset successful for user: {}", user.getUsername());
+  }
+
+  private PasswordResetToken getValidToken(String token) {
+    PasswordResetToken resetToken =
+        passwordTokenRepository
+            .findByToken(token)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid reset token"));
+
+    if (resetToken.isExpired()) {
+      throw new IllegalArgumentException("Reset token has expired");
+    }
+
+    if (resetToken.isUsed()) {
+      throw new IllegalArgumentException("Reset token has already been used");
+    }
+
+    return resetToken;
   }
 
   public static class DatabaseException extends RuntimeException {
@@ -93,10 +151,11 @@ public class AuthService implements UserDetailsService {
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    String normalizedUsername = normalizeUsername(username);
 
     com.example.demo.auth.models.User user =
         userRepository
-            .findByUsername(username)
+            .findByUsername(normalizedUsername)
             .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
     return new org.springframework.security.core.userdetails.User(
@@ -107,5 +166,12 @@ public class AuthService implements UserDetailsService {
         true, // credentialsNonExpired
         true, // accountNonLocked
         user.getRoles().stream().map(SimpleGrantedAuthority::new).toList());
+  }
+
+  public PasswordResetToken createPasswordResetToken(User user) {
+    String resetToken = UUID.randomUUID().toString();
+    PasswordResetToken newToken = new PasswordResetToken(resetToken, user);
+    passwordTokenRepository.save(newToken);
+    return newToken;
   }
 }

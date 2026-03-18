@@ -7,5 +7,5 @@ public class ResetPasswordRequest {
   private String email;
   private String token;
   private String newPassword;
-  private String confirmNewPassword;
+  private String confirmPassword;
 }
