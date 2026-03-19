@@ -4,11 +4,13 @@ import com.example.demo.auth.models.User;
 import com.example.demo.pets.dto.PetPreviewResponse;
 import com.example.demo.pets.dto.PetRequest;
 import com.example.demo.pets.dto.PetResponse;
+import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Slf4j
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PetService {
 
   private final PetRepository petRepository;
+  private final CloudinaryService cloudinaryService;
 
   public List<PetPreviewResponse> getAllPetPreviews() {
     return petRepository.findAllByOrderByCreatedAtDesc().stream()
@@ -94,5 +97,26 @@ public class PetService {
 
     petRepository.delete(pet);
     log.info("Deleted pet '{}' for user '{}'", pet.getName(), user.getUsername());
+  }
+
+  @Transactional
+  public PetResponse uploadPetImage(Long id, MultipartFile file, User user) {
+    Pet pet =
+        petRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Pet not found"));
+
+    if (!pet.getUser().getId().equals(user.getId())) {
+      throw new IllegalArgumentException("You can only update your own pets");
+    }
+
+    try {
+      String imageUrl = cloudinaryService.uploadImage(file);
+      pet.setImageUrl(imageUrl);
+      Pet savedPet = petRepository.save(pet);
+      log.info("Uploaded image for pet '{}' for user '{}'", savedPet.getName(), user.getUsername());
+      return PetResponse.fromEntity(savedPet);
+    } catch (IOException e) {
+      log.error("Failed to upload image to Cloudinary", e);
+      throw new RuntimeException("Failed to upload image", e);
+    }
   }
 }

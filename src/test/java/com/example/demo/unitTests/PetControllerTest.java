@@ -24,6 +24,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 class PetControllerTest {
@@ -169,5 +171,35 @@ class PetControllerTest {
     assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     verify(authService).findByUsername("testuser");
     verify(petService).deletePet(1L, testUser);
+  }
+
+  @Test
+  void uploadPetImage_shouldUploadImageAndReturnUpdatedPet() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "test.jpg", "image/jpeg", "test image content".getBytes());
+    PetResponse updatedPetWithImage =
+        PetResponse.builder()
+            .id(1L)
+            .name("Buddy")
+            .species("Dog")
+            .breed("Golden Retriever")
+            .age(3)
+            .description("Friendly dog")
+            .imageUrl("http://cloudinary.com/pets/test.jpg")
+            .ownerUsername("testuser")
+            .ownerId(1L)
+            .build();
+
+    when(principal.getName()).thenReturn("testuser");
+    when(authService.findByUsername("testuser")).thenReturn(testUser);
+    when(petService.uploadPetImage(eq(1L), any(MultipartFile.class), eq(testUser)))
+        .thenReturn(updatedPetWithImage);
+
+    ResponseEntity<PetResponse> response = petController.uploadPetImage(1L, file, principal);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("http://cloudinary.com/pets/test.jpg", response.getBody().getImageUrl());
+    verify(authService).findByUsername("testuser");
+    verify(petService).uploadPetImage(eq(1L), any(MultipartFile.class), eq(testUser));
   }
 }
