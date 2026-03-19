@@ -37,6 +37,8 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**")
                     .permitAll() // allow all CORS preflight requests
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/pets")
+                    .permitAll() // public pet listing (preview only)
                     .requestMatchers("/auth/profile")
                     .authenticated() // profile endpoint requires a valid JWT
                     .requestMatchers("/auth/**", "/error")
