@@ -6,7 +6,10 @@ import com.example.demo.pets.dto.PetRequest;
 import com.example.demo.pets.dto.PetResponse;
 import com.example.demo.pets.models.Pet;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,22 +23,44 @@ public class PetService {
 
   private final PetRepository petRepository;
   private final CloudinaryService cloudinaryService;
+  private final FavoriteRepository favoriteRepository;
 
   private static final String PET_NOT_FOUND = "Pet not found";
 
   public List<PetPreviewResponse> getAllPetPreviews() {
+    return getAllPetPreviews(null);
+  }
+
+  public List<PetPreviewResponse> getAllPetPreviews(User user) {
+    Set<Long> favoritePetIds = user != null ? favoriteRepository.findPetIdsByUser(user) : Set.of();
+    Map<Long, Long> favouriteCounts = getFavouriteCountsMap();
     return petRepository.findAllByOrderByCreatedAtDesc().stream()
-        .map(this::toPreviewResponse)
+        .map(
+            pet ->
+                toPreviewResponse(
+                    pet,
+                    favoritePetIds.contains(pet.getId()),
+                    favouriteCounts.getOrDefault(pet.getId(), 0L)))
         .toList();
   }
 
-  private PetPreviewResponse toPreviewResponse(Pet pet) {
+  private Map<Long, Long> getFavouriteCountsMap() {
+    Map<Long, Long> counts = new HashMap<>();
+    for (Object[] row : favoriteRepository.countFavoritesByPetId()) {
+      counts.put((Long) row[0], (Long) row[1]);
+    }
+    return counts;
+  }
+
+  private PetPreviewResponse toPreviewResponse(Pet pet, Boolean isFavorited, Long favouriteCount) {
     return PetPreviewResponse.builder()
         .id(pet.getId())
         .name(pet.getName())
         .species(pet.getSpecies())
         .breed(pet.getBreed())
         .imageUrl(pet.getImageUrl())
+        .isFavorited(isFavorited)
+        .favouriteCount(favouriteCount)
         .build();
   }
 
@@ -53,9 +78,15 @@ public class PetService {
 
   @Transactional(readOnly = true)
   public PetResponse getPetById(Long id) {
+    return getPetById(id, null);
+  }
+
+  @Transactional(readOnly = true)
+  public PetResponse getPetById(Long id, User user) {
     Pet pet =
         petRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(PET_NOT_FOUND));
-    return PetResponse.fromEntity(pet);
+    Boolean isFavorited = user != null ? favoriteRepository.existsByUserAndPet(user, pet) : null;
+    return PetResponse.fromEntity(pet, isFavorited);
   }
 
   @Transactional

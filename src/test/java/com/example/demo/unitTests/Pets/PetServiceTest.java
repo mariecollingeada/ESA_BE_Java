@@ -1,8 +1,10 @@
 package com.example.demo.unitTests.Pets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -10,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import com.example.demo.auth.models.User;
 import com.example.demo.pets.CloudinaryService;
+import com.example.demo.pets.FavoriteRepository;
 import com.example.demo.pets.PetRepository;
 import com.example.demo.pets.PetService;
 import com.example.demo.pets.dto.PetPreviewResponse;
@@ -37,6 +40,8 @@ class PetServiceTest {
   @Mock private PetRepository petRepository;
 
   @Mock private CloudinaryService cloudinaryService;
+
+  @Mock private FavoriteRepository favoriteRepository;
 
   @InjectMocks private PetService petService;
 
@@ -97,10 +102,24 @@ class PetServiceTest {
     List<PetPreviewResponse> result = petService.getAllPetPreviews();
 
     assertEquals(1, result.size());
-    assertEquals("Buddy", result.get(0).getName());
-    assertEquals(Species.DOG, result.get(0).getSpecies());
-    assertEquals("http://example.com/image.jpg", result.get(0).getImageUrl());
+    assertEquals("Buddy", result.getFirst().getName());
+    assertEquals(Species.DOG, result.getFirst().getSpecies());
+    assertEquals("http://example.com/image.jpg", result.getFirst().getImageUrl());
+    assertFalse(result.getFirst().getIsFavorited());
     verify(petRepository).findAllByOrderByCreatedAtDesc();
+  }
+
+  @Test
+  void getAllPetPreviews_withUser_shouldIncludeIsFavorited() {
+    List<Pet> pets = List.of(testPet);
+    when(petRepository.findAllByOrderByCreatedAtDesc()).thenReturn(pets);
+    when(favoriteRepository.findPetIdsByUser(testUser)).thenReturn(Set.of(1L));
+
+    List<PetPreviewResponse> result = petService.getAllPetPreviews(testUser);
+
+    assertEquals(1, result.size());
+    assertTrue(result.getFirst().getIsFavorited());
+    verify(favoriteRepository).findPetIdsByUser(testUser);
   }
 
   @Test
@@ -123,7 +142,7 @@ class PetServiceTest {
     List<PetResponse> result = petService.getAllPets();
 
     assertEquals(1, result.size());
-    assertEquals("Buddy", result.get(0).getName());
+    assertEquals("Buddy", result.getFirst().getName());
     verify(petRepository).findAllByOrderByCreatedAtDesc();
   }
 
@@ -137,7 +156,7 @@ class PetServiceTest {
     List<PetResponse> result = petService.getPetsByUser(1L);
 
     assertEquals(1, result.size());
-    assertEquals("Buddy", result.get(0).getName());
+    assertEquals("Buddy", result.getFirst().getName());
     verify(petRepository).findByUserId(1L);
   }
 

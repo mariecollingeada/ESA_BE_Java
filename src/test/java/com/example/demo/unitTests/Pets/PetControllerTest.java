@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.example.demo.auth.AuthService;
 import com.example.demo.auth.models.User;
+import com.example.demo.pets.FavoriteService;
 import com.example.demo.pets.PetController;
 import com.example.demo.pets.PetService;
 import com.example.demo.pets.dto.PetPreviewResponse;
@@ -32,6 +33,8 @@ import org.springframework.web.multipart.MultipartFile;
 class PetControllerTest {
 
   @Mock private PetService petService;
+
+  @Mock private FavoriteService favoriteService;
 
   @Mock private AuthService authService;
 
@@ -86,25 +89,25 @@ class PetControllerTest {
             .imageUrl("http://example.com/image.jpg")
             .build();
     List<PetPreviewResponse> pets = List.of(previewResponse);
-    when(petService.getAllPetPreviews()).thenReturn(pets);
+    when(petService.getAllPetPreviews(null)).thenReturn(pets);
 
-    ResponseEntity<List<PetPreviewResponse>> response = petController.getAllPets();
+    ResponseEntity<List<PetPreviewResponse>> response = petController.getAllPets(null);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals(1, response.getBody().size());
-    assertEquals("Buddy", response.getBody().get(0).getName());
-    verify(petService).getAllPetPreviews();
+    assertEquals("Buddy", response.getBody().getFirst().getName());
+    verify(petService).getAllPetPreviews(null);
   }
 
   @Test
   void getPetById_shouldReturnPet() {
-    when(petService.getPetById(1L)).thenReturn(testPetResponse);
+    when(petService.getPetById(1L, null)).thenReturn(testPetResponse);
 
-    ResponseEntity<PetResponse> response = petController.getPetById(1L);
+    ResponseEntity<PetResponse> response = petController.getPetById(1L, null);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertEquals("Buddy", response.getBody().getName());
-    verify(petService).getPetById(1L);
+    verify(petService).getPetById(1L, null);
   }
 
   @Test

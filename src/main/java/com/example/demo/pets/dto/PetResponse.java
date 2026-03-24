@@ -17,8 +17,13 @@ public class PetResponse {
   private String imageUrl;
   private String ownerUsername;
   private Long ownerId;
+  private Boolean isFavorited;
 
   public static PetResponse fromEntity(Pet pet) {
+    return fromEntity(pet, null);
+  }
+
+  public static PetResponse fromEntity(Pet pet, Boolean isFavorited) {
     return PetResponse.builder()
         .id(pet.getId())
         .name(pet.getName())
@@ -29,6 +34,7 @@ public class PetResponse {
         .imageUrl(pet.getImageUrl())
         .ownerUsername(pet.getUser().getUsername())
         .ownerId(pet.getUser().getId())
+        .isFavorited(isFavorited)
         .build();
   }
 }

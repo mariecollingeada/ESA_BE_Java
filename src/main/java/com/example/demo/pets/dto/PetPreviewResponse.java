@@ -12,4 +12,6 @@ public class PetPreviewResponse {
   private Species species;
   private String breed;
   private String imageUrl;
+  private Boolean isFavorited;
+  private Long favouriteCount;
 }

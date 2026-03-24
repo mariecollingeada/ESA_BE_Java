@@ -28,16 +28,19 @@ import org.springframework.web.multipart.MultipartFile;
 public class PetController {
 
   private final PetService petService;
+  private final FavoriteService favoriteService;
   private final AuthService authService;
 
   @GetMapping
-  public ResponseEntity<List<PetPreviewResponse>> getAllPets() {
-    return ResponseEntity.ok(petService.getAllPetPreviews());
+  public ResponseEntity<List<PetPreviewResponse>> getAllPets(Principal principal) {
+    User user = principal != null ? authService.findByUsername(principal.getName()) : null;
+    return ResponseEntity.ok(petService.getAllPetPreviews(user));
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<PetResponse> getPetById(@PathVariable Long id) {
-    return ResponseEntity.ok(petService.getPetById(id));
+  public ResponseEntity<PetResponse> getPetById(@PathVariable Long id, Principal principal) {
+    User user = principal != null ? authService.findByUsername(principal.getName()) : null;
+    return ResponseEntity.ok(petService.getPetById(id, user));
   }
 
   @GetMapping("/my-pets")
@@ -74,5 +77,27 @@ public class PetController {
     User user = authService.findByUsername(principal.getName());
     PetResponse pet = petService.uploadPetImage(id, file, user);
     return ResponseEntity.ok(pet);
+  }
+
+  // Favorite endpoints
+
+  @PostMapping("/{id}/favorite")
+  public ResponseEntity<Void> addFavorite(@PathVariable Long id, Principal principal) {
+    User user = authService.findByUsername(principal.getName());
+    favoriteService.addFavorite(id, user);
+    return ResponseEntity.status(HttpStatus.CREATED).build();
+  }
+
+  @DeleteMapping("/{id}/favorite")
+  public ResponseEntity<Void> removeFavorite(@PathVariable Long id, Principal principal) {
+    User user = authService.findByUsername(principal.getName());
+    favoriteService.removeFavorite(id, user);
+    return ResponseEntity.noContent().build();
+  }
+
+  @GetMapping("/favorites/me")
+  public ResponseEntity<List<PetPreviewResponse>> getMyFavorites(Principal principal) {
+    User user = authService.findByUsername(principal.getName());
+    return ResponseEntity.ok(favoriteService.getUserFavorites(user));
   }
 }

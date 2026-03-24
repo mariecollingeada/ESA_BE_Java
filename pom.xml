@@ -200,6 +200,17 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <forkedProcessExitTimeoutInSeconds>180</forkedProcessExitTimeoutInSeconds>
+          <shutdown>exit</shutdown>
+          <reuseForks>true</reuseForks>
+          <forkCount>1</forkCount>
+          <argLine>@{argLine} -Dspring.jpa.properties.hibernate.hbm2ddl.halt_on_error=false</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.12</version>
