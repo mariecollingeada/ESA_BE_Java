@@ -11,7 +11,8 @@ UPDATE pets SET species =
         WHEN UPPER(species) = 'REPTILE' THEN 'REPTILE'
         WHEN UPPER(species) = 'SMALL MAMMAL' OR UPPER(species) = 'SMALL_MAMMAL' THEN 'SMALL_MAMMAL'
         ELSE 'OTHER'
-    END;
+    END
+WHERE species IS NOT NULL;
 
 -- Resize column to fit enum values
 ALTER TABLE pets ALTER COLUMN species TYPE VARCHAR(20);
