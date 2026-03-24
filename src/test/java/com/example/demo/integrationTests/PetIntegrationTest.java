@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.example.demo.auth.AuthService;
 import com.example.demo.auth.UserRepository;
 import com.example.demo.auth.models.User;
+import com.example.demo.pets.FavoriteRepository;
 import com.example.demo.pets.PetRepository;
 import com.example.demo.pets.PetService;
 import com.example.demo.pets.dto.PetPreviewResponse;
@@ -50,6 +51,7 @@ class PetIntegrationTest {
 
   @Autowired private UserRepository userRepository;
   @Autowired private PetRepository petRepository;
+  @Autowired private FavoriteRepository favoriteRepository;
   @Autowired private PetService petService;
   @Autowired private AuthService authService;
   @Autowired private PasswordEncoder passwordEncoder;
@@ -59,6 +61,7 @@ class PetIntegrationTest {
 
   @BeforeEach
   void setUp() {
+    favoriteRepository.deleteAll();
     petRepository.deleteAll();
     userRepository.deleteAll();
 
@@ -161,7 +164,7 @@ class PetIntegrationTest {
     List<PetResponse> userPets = petService.getPetsByUser(testUser.getId());
 
     assertEquals(1, userPets.size());
-    assertEquals("MyPet", userPets.get(0).getName());
+    assertEquals("MyPet", userPets.getFirst().getName());
   }
 
   @Test
@@ -290,7 +293,7 @@ class PetIntegrationTest {
 
     assertEquals(2, previews.size());
     // Most recent should be first
-    assertEquals("Second", previews.get(0).getName());
+    assertEquals("Second", previews.getFirst().getName());
     assertEquals("First", previews.get(1).getName());
   }
 
