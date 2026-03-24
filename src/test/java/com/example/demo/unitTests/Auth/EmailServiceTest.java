@@ -1,4 +1,4 @@
-package com.example.demo.unitTests;
+package com.example.demo.unitTests.Auth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

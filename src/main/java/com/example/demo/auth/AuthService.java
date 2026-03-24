@@ -5,6 +5,7 @@ import com.example.demo.auth.dto.ResetPasswordRequest;
 import com.example.demo.auth.models.PasswordResetToken;
 import com.example.demo.auth.models.User;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -169,9 +170,25 @@ public class AuthService implements UserDetailsService {
   }
 
   public PasswordResetToken createPasswordResetToken(User user) {
-    String resetToken = UUID.randomUUID().toString();
-    PasswordResetToken newToken = new PasswordResetToken(resetToken, user);
-    passwordTokenRepository.save(newToken);
-    return newToken;
+    String token = UUID.randomUUID().toString();
+
+    return passwordTokenRepository
+        .findByUser(user)
+        .map(
+            existing -> {
+              existing.setToken(token);
+              existing.setUsed(false);
+              existing.setExpiryDate(LocalDateTime.now().plusHours(1));
+              return passwordTokenRepository.save(existing);
+            })
+        .orElseGet(
+            () -> {
+              PasswordResetToken newToken = new PasswordResetToken();
+              newToken.setUser(user);
+              newToken.setToken(token);
+              newToken.setUsed(false);
+              newToken.setExpiryDate(LocalDateTime.now().plusHours(1));
+              return passwordTokenRepository.save(newToken);
+            });
   }
 }

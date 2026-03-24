@@ -1,4 +1,4 @@
-package com.example.demo.pets;
+package com.example.demo.pets.models;
 
 import com.example.demo.auth.models.User;
 import jakarta.persistence.Column;
@@ -10,6 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,6 +45,8 @@ public class Pet {
   @Column(length = 100)
   private String breed;
 
+  @Min(0)
+  @Max(100)
   private Integer age;
 
   @Column(columnDefinition = "TEXT")

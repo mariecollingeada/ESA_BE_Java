@@ -16,6 +16,8 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+  private static final String ERROR_KEY = "error";
+
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
     return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
@@ -24,19 +26,19 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(AuthService.DatabaseException.class)
   public ResponseEntity<Map<String, String>> handleDatabaseException(
       AuthService.DatabaseException ex) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(ERROR_KEY, ex.getMessage()));
   }
 
   @ExceptionHandler(BadCredentialsException.class)
   public ResponseEntity<Map<String, String>> handleBadCredentials(BadCredentialsException ex) {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-        .body(Map.of("error", "Invalid username or password"));
+        .body(Map.of(ERROR_KEY, "Invalid username or password"));
   }
 
   @ExceptionHandler(UsernameNotFoundException.class)
   public ResponseEntity<Map<String, String>> handleUsernameNotFound(UsernameNotFoundException ex) {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-        .body(Map.of("error", "Invalid username or password"));
+        .body(Map.of(ERROR_KEY, "Invalid username or password"));
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -46,7 +48,7 @@ public class GlobalExceptionHandler {
             .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
             .reduce((a, b) -> a + "; " + b)
             .orElse("Validation failed");
-    return ResponseEntity.badRequest().body(Map.of("error", message));
+    return ResponseEntity.badRequest().body(Map.of(ERROR_KEY, message));
   }
 
   @ExceptionHandler(NoResourceFoundException.class)
@@ -58,6 +60,6 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
     log.error("Unhandled exception: ", ex);
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(Map.of("error", "An unexpected error occurred"));
+        .body(Map.of(ERROR_KEY, "An unexpected error occurred"));
   }
 }
