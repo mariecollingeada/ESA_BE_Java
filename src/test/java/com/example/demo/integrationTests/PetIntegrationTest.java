@@ -14,6 +14,7 @@ import com.example.demo.pets.dto.PetPreviewResponse;
 import com.example.demo.pets.dto.PetRequest;
 import com.example.demo.pets.dto.PetResponse;
 import com.example.demo.pets.models.Pet;
+import com.example.demo.pets.models.Species;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,7 +87,7 @@ class PetIntegrationTest {
   void createPet_shouldPersistPetInDatabase() {
     PetRequest request = new PetRequest();
     request.setName("Buddy");
-    request.setSpecies("Dog");
+    request.setSpecies(Species.DOG);
     request.setBreed("Golden Retriever");
     request.setAge(3);
     request.setDescription("A friendly dog");
@@ -95,7 +96,7 @@ class PetIntegrationTest {
 
     assertNotNull(response.getId());
     assertEquals("Buddy", response.getName());
-    assertEquals("Dog", response.getSpecies());
+    assertEquals(Species.DOG, response.getSpecies());
     assertEquals("Golden Retriever", response.getBreed());
     assertEquals(3, response.getAge());
     assertEquals("A friendly dog", response.getDescription());
@@ -113,7 +114,7 @@ class PetIntegrationTest {
     Pet pet =
         Pet.builder()
             .name("Whiskers")
-            .species("Cat")
+            .species(Species.CAT)
             .breed("Persian")
             .age(2)
             .description("Fluffy cat")
@@ -124,7 +125,7 @@ class PetIntegrationTest {
     PetResponse response = petService.getPetById(pet.getId());
 
     assertEquals("Whiskers", response.getName());
-    assertEquals("Cat", response.getSpecies());
+    assertEquals(Species.CAT, response.getSpecies());
     assertEquals("Persian", response.getBreed());
     assertEquals(2, response.getAge());
   }
@@ -138,8 +139,8 @@ class PetIntegrationTest {
 
   @Test
   void getAllPetPreviews_shouldReturnAllPets() {
-    Pet pet1 = Pet.builder().name("Pet1").species("Dog").user(testUser).build();
-    Pet pet2 = Pet.builder().name("Pet2").species("Cat").user(otherUser).build();
+    Pet pet1 = Pet.builder().name("Pet1").species(Species.DOG).user(testUser).build();
+    Pet pet2 = Pet.builder().name("Pet2").species(Species.CAT).user(otherUser).build();
     petRepository.save(pet1);
     petRepository.save(pet2);
 
@@ -152,8 +153,8 @@ class PetIntegrationTest {
 
   @Test
   void getPetsByUser_shouldReturnOnlyUserPets() {
-    Pet userPet = Pet.builder().name("MyPet").species("Dog").user(testUser).build();
-    Pet otherPet = Pet.builder().name("OtherPet").species("Cat").user(otherUser).build();
+    Pet userPet = Pet.builder().name("MyPet").species(Species.DOG).user(testUser).build();
+    Pet otherPet = Pet.builder().name("OtherPet").species(Species.CAT).user(otherUser).build();
     petRepository.save(userPet);
     petRepository.save(otherPet);
 
@@ -168,7 +169,7 @@ class PetIntegrationTest {
     Pet pet =
         Pet.builder()
             .name("OldName")
-            .species("Dog")
+            .species(Species.DOG)
             .breed("Labrador")
             .age(1)
             .description("Old description")
@@ -178,7 +179,7 @@ class PetIntegrationTest {
 
     PetRequest updateRequest = new PetRequest();
     updateRequest.setName("NewName");
-    updateRequest.setSpecies("Dog");
+    updateRequest.setSpecies(Species.DOG);
     updateRequest.setBreed("Golden Retriever");
     updateRequest.setAge(2);
     updateRequest.setDescription("New description");
@@ -197,13 +198,13 @@ class PetIntegrationTest {
 
   @Test
   void updatePet_byNonOwner_shouldThrow() {
-    Pet pet = Pet.builder().name("Pet").species("Dog").user(testUser).build();
+    Pet pet = Pet.builder().name("Pet").species(Species.DOG).user(testUser).build();
     Pet savedPet = petRepository.save(pet);
     final Long petId = savedPet.getId();
 
     PetRequest updateRequest = new PetRequest();
     updateRequest.setName("Hacked");
-    updateRequest.setSpecies("Dog");
+    updateRequest.setSpecies(Species.DOG);
 
     IllegalArgumentException exception =
         assertThrows(
@@ -220,7 +221,7 @@ class PetIntegrationTest {
   void updatePet_nonExistentPet_shouldThrow() {
     PetRequest updateRequest = new PetRequest();
     updateRequest.setName("Name");
-    updateRequest.setSpecies("Dog");
+    updateRequest.setSpecies(Species.DOG);
 
     IllegalArgumentException exception =
         assertThrows(
@@ -231,7 +232,7 @@ class PetIntegrationTest {
 
   @Test
   void deletePet_byOwner_shouldSucceed() {
-    Pet pet = Pet.builder().name("ToDelete").species("Dog").user(testUser).build();
+    Pet pet = Pet.builder().name("ToDelete").species(Species.DOG).user(testUser).build();
     pet = petRepository.save(pet);
     Long petId = pet.getId();
 
@@ -242,7 +243,7 @@ class PetIntegrationTest {
 
   @Test
   void deletePet_byNonOwner_shouldThrow() {
-    Pet pet = Pet.builder().name("Protected").species("Dog").user(testUser).build();
+    Pet pet = Pet.builder().name("Protected").species(Species.DOG).user(testUser).build();
     Pet savedPet = petRepository.save(pet);
     final Long petId = savedPet.getId();
 
@@ -266,7 +267,7 @@ class PetIntegrationTest {
     for (int i = 1; i <= 3; i++) {
       PetRequest request = new PetRequest();
       request.setName("Pet" + i);
-      request.setSpecies("Dog");
+      request.setSpecies(Species.DOG);
       petService.createPet(request, testUser);
     }
 
@@ -277,12 +278,12 @@ class PetIntegrationTest {
 
   @Test
   void getAllPets_shouldReturnInDescendingOrderByCreatedAt() throws InterruptedException {
-    Pet pet1 = Pet.builder().name("First").species("Dog").user(testUser).build();
+    Pet pet1 = Pet.builder().name("First").species(Species.DOG).user(testUser).build();
     petRepository.save(pet1);
 
     Thread.sleep(10); // Small delay to ensure different timestamps
 
-    Pet pet2 = Pet.builder().name("Second").species("Cat").user(testUser).build();
+    Pet pet2 = Pet.builder().name("Second").species(Species.CAT).user(testUser).build();
     petRepository.save(pet2);
 
     List<PetPreviewResponse> previews = petService.getAllPetPreviews();
@@ -297,21 +298,21 @@ class PetIntegrationTest {
   void createPet_withMinimalData_shouldSucceed() {
     PetRequest request = new PetRequest();
     request.setName("MinimalPet");
-    request.setSpecies("Unknown");
+    request.setSpecies(Species.OTHER);
     // No breed, age, or description
 
     PetResponse response = petService.createPet(request, testUser);
 
     assertNotNull(response.getId());
     assertEquals("MinimalPet", response.getName());
-    assertEquals("Unknown", response.getSpecies());
+    assertEquals(Species.OTHER, response.getSpecies());
   }
 
   @Test
   void userDeletion_shouldNotAffectOtherUsersPets() {
     // Create pets for both users
-    Pet testUserPet = Pet.builder().name("TestPet").species("Dog").user(testUser).build();
-    Pet otherUserPet = Pet.builder().name("OtherPet").species("Cat").user(otherUser).build();
+    Pet testUserPet = Pet.builder().name("TestPet").species(Species.DOG).user(testUser).build();
+    Pet otherUserPet = Pet.builder().name("OtherPet").species(Species.CAT).user(otherUser).build();
     petRepository.save(testUserPet);
     petRepository.save(otherUserPet);
 

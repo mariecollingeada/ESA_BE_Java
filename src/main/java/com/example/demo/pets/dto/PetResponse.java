@@ -1,6 +1,7 @@
 package com.example.demo.pets.dto;
 
 import com.example.demo.pets.models.Pet;
+import com.example.demo.pets.models.Species;
 import lombok.Builder;
 import lombok.Data;
 
@@ -9,7 +10,7 @@ import lombok.Data;
 public class PetResponse {
   private Long id;
   private String name;
-  private String species;
+  private Species species;
   private String breed;
   private Integer age;
   private String description;

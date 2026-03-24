@@ -16,6 +16,7 @@ import com.example.demo.pets.dto.PetPreviewResponse;
 import com.example.demo.pets.dto.PetRequest;
 import com.example.demo.pets.dto.PetResponse;
 import com.example.demo.pets.models.Pet;
+import com.example.demo.pets.models.Species;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -70,7 +71,7 @@ class PetServiceTest {
         Pet.builder()
             .id(1L)
             .name("Buddy")
-            .species("Dog")
+            .species(Species.DOG)
             .breed("Golden Retriever")
             .age(3)
             .description("Friendly dog")
@@ -80,7 +81,7 @@ class PetServiceTest {
 
     testPetRequest = new PetRequest();
     testPetRequest.setName("Buddy");
-    testPetRequest.setSpecies("Dog");
+    testPetRequest.setSpecies(Species.DOG);
     testPetRequest.setBreed("Golden Retriever");
     testPetRequest.setAge(3);
     testPetRequest.setDescription("Friendly dog");
@@ -97,7 +98,7 @@ class PetServiceTest {
 
     assertEquals(1, result.size());
     assertEquals("Buddy", result.get(0).getName());
-    assertEquals("Dog", result.get(0).getSpecies());
+    assertEquals(Species.DOG, result.get(0).getSpecies());
     assertEquals("http://example.com/image.jpg", result.get(0).getImageUrl());
     verify(petRepository).findAllByOrderByCreatedAtDesc();
   }
@@ -160,7 +161,7 @@ class PetServiceTest {
 
     assertNotNull(result);
     assertEquals("Buddy", result.getName());
-    assertEquals("Dog", result.getSpecies());
+    assertEquals(Species.DOG, result.getSpecies());
     verify(petRepository).findById(1L);
   }
 
@@ -185,7 +186,7 @@ class PetServiceTest {
 
     assertNotNull(result);
     assertEquals("Buddy", result.getName());
-    assertEquals("Dog", result.getSpecies());
+    assertEquals(Species.DOG, result.getSpecies());
 
     ArgumentCaptor<Pet> petCaptor = ArgumentCaptor.forClass(Pet.class);
     verify(petRepository).save(petCaptor.capture());
@@ -203,7 +204,7 @@ class PetServiceTest {
 
     PetRequest updateRequest = new PetRequest();
     updateRequest.setName("Buddy Updated");
-    updateRequest.setSpecies("Dog");
+    updateRequest.setSpecies(Species.DOG);
     updateRequest.setBreed("Labrador");
     updateRequest.setAge(4);
     updateRequest.setDescription("Very friendly dog");

@@ -3,6 +3,8 @@ package com.example.demo.pets.models;
 import com.example.demo.auth.models.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -39,8 +41,9 @@ public class Pet {
   @Column(nullable = false, length = 100)
   private String name;
 
-  @Column(nullable = false, length = 50)
-  private String species;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private Species species;
 
   @Column(length = 100)
   private String breed;

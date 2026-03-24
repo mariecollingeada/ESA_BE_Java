@@ -13,6 +13,7 @@ import com.example.demo.pets.PetService;
 import com.example.demo.pets.dto.PetPreviewResponse;
 import com.example.demo.pets.dto.PetRequest;
 import com.example.demo.pets.dto.PetResponse;
+import com.example.demo.pets.models.Species;
 import java.security.Principal;
 import java.util.List;
 import java.util.Set;
@@ -58,7 +59,7 @@ class PetControllerTest {
         PetResponse.builder()
             .id(1L)
             .name("Buddy")
-            .species("Dog")
+            .species(Species.DOG)
             .breed("Golden Retriever")
             .age(3)
             .description("Friendly dog")
@@ -69,7 +70,7 @@ class PetControllerTest {
 
     testPetRequest = new PetRequest();
     testPetRequest.setName("Buddy");
-    testPetRequest.setSpecies("Dog");
+    testPetRequest.setSpecies(Species.DOG);
     testPetRequest.setBreed("Golden Retriever");
     testPetRequest.setAge(3);
     testPetRequest.setDescription("Friendly dog");
@@ -81,7 +82,7 @@ class PetControllerTest {
         PetPreviewResponse.builder()
             .id(1L)
             .name("Buddy")
-            .species("Dog")
+            .species(Species.DOG)
             .imageUrl("http://example.com/image.jpg")
             .build();
     List<PetPreviewResponse> pets = List.of(previewResponse);
@@ -141,7 +142,7 @@ class PetControllerTest {
         PetResponse.builder()
             .id(1L)
             .name("Buddy Updated")
-            .species("Dog")
+            .species(Species.DOG)
             .breed("Golden Retriever")
             .age(4)
             .description("Very friendly dog")
@@ -181,7 +182,7 @@ class PetControllerTest {
         PetResponse.builder()
             .id(1L)
             .name("Buddy")
-            .species("Dog")
+            .species(Species.DOG)
             .breed("Golden Retriever")
             .age(3)
             .description("Friendly dog")
