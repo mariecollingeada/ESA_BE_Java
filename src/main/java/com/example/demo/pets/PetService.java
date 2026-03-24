@@ -25,15 +25,18 @@ public class PetService {
 
   public List<PetPreviewResponse> getAllPetPreviews() {
     return petRepository.findAllByOrderByCreatedAtDesc().stream()
-        .map(
-            pet ->
-                PetPreviewResponse.builder()
-                    .id(pet.getId())
-                    .name(pet.getName())
-                    .species(pet.getSpecies())
-                    .imageUrl(pet.getImageUrl())
-                    .build())
+        .map(this::toPreviewResponse)
         .toList();
+  }
+
+  private PetPreviewResponse toPreviewResponse(Pet pet) {
+    return PetPreviewResponse.builder()
+        .id(pet.getId())
+        .name(pet.getName())
+        .species(pet.getSpecies())
+        .breed(pet.getBreed())
+        .imageUrl(pet.getImageUrl())
+        .build();
   }
 
   @Transactional(readOnly = true)
