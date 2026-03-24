@@ -8,9 +8,9 @@ import com.example.demo.auth.dto.ResetPasswordRequest;
 import com.example.demo.security.JwtUtil;
 import jakarta.validation.Valid;
 import java.io.IOException;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -54,10 +55,10 @@ public class AuthController {
 
   /** POST /auth/register Registers a new user account. */
   @PostMapping("/register")
-  public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest request) {
+  @ResponseStatus(HttpStatus.CREATED)
+  public void register(@RequestBody @Valid RegisterRequest request) {
     log.info("Register attempt for user: {}", request.getUsername());
     authService.register(request);
-    return ResponseEntity.status(201).body(Map.of("status", "created"));
   }
 
   /**
@@ -84,11 +85,8 @@ public class AuthController {
    * in the Authorization header.
    */
   @GetMapping("/profile")
-  public ResponseEntity<ProfileResponse> getProfile(
-      @AuthenticationPrincipal UserDetails principal) {
+  public ProfileResponse getProfile(@AuthenticationPrincipal UserDetails principal) {
     com.example.demo.auth.models.User user = authService.findByUsername(principal.getUsername());
-    var profile =
-        new ProfileResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRoles());
-    return ResponseEntity.ok(profile);
+    return new ProfileResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRoles());
   }
 }

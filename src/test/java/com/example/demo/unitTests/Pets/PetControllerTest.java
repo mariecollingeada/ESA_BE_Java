@@ -1,4 +1,4 @@
-package com.example.demo.unitTests;
+package com.example.demo.unitTests.Pets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;

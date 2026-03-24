@@ -1,6 +1,6 @@
 package com.example.demo.pets.dto;
 
-import com.example.demo.pets.Pet;
+import com.example.demo.pets.models.Pet;
 import lombok.Builder;
 import lombok.Data;
 

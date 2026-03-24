@@ -4,6 +4,7 @@ import com.example.demo.auth.models.User;
 import com.example.demo.pets.dto.PetPreviewResponse;
 import com.example.demo.pets.dto.PetRequest;
 import com.example.demo.pets.dto.PetResponse;
+import com.example.demo.pets.models.Pet;
 import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,8 @@ public class PetService {
   private final PetRepository petRepository;
   private final CloudinaryService cloudinaryService;
 
+  private static final String PET_NOT_FOUND = "Pet not found";
+
   public List<PetPreviewResponse> getAllPetPreviews() {
     return petRepository.findAllByOrderByCreatedAtDesc().stream()
         .map(
@@ -33,19 +36,22 @@ public class PetService {
         .toList();
   }
 
+  @Transactional(readOnly = true)
   public List<PetResponse> getAllPets() {
     return petRepository.findAllByOrderByCreatedAtDesc().stream()
         .map(PetResponse::fromEntity)
         .toList();
   }
 
+  @Transactional(readOnly = true)
   public List<PetResponse> getPetsByUser(Long userId) {
     return petRepository.findByUserId(userId).stream().map(PetResponse::fromEntity).toList();
   }
 
+  @Transactional(readOnly = true)
   public PetResponse getPetById(Long id) {
     Pet pet =
-        petRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Pet not found"));
+        petRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(PET_NOT_FOUND));
     return PetResponse.fromEntity(pet);
   }
 
@@ -69,7 +75,7 @@ public class PetService {
   @Transactional
   public PetResponse updatePet(Long id, PetRequest request, User user) {
     Pet pet =
-        petRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Pet not found"));
+        petRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(PET_NOT_FOUND));
 
     if (!pet.getUser().getId().equals(user.getId())) {
       throw new IllegalArgumentException("You can only update your own pets");
@@ -89,7 +95,7 @@ public class PetService {
   @Transactional
   public void deletePet(Long id, User user) {
     Pet pet =
-        petRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Pet not found"));
+        petRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(PET_NOT_FOUND));
 
     if (!pet.getUser().getId().equals(user.getId())) {
       throw new IllegalArgumentException("You can only delete your own pets");
@@ -102,7 +108,7 @@ public class PetService {
   @Transactional
   public PetResponse uploadPetImage(Long id, MultipartFile file, User user) {
     Pet pet =
-        petRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Pet not found"));
+        petRepository.findById(id).orElseThrow(() -> new IllegalArgumentException(PET_NOT_FOUND));
 
     if (!pet.getUser().getId().equals(user.getId())) {
       throw new IllegalArgumentException("You can only update your own pets");
